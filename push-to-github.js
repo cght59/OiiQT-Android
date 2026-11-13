@@ -59,7 +59,8 @@ async function api(method, endpoint, body, { raw = false } = {}) {
     method,
     headers: {
       'Authorization': `Bearer ${TOKEN}`,
-      'Accept': raw ? 'application/octet-stream' : 'application/vnd.github+json',
+      // The artifact-zip endpoint returns 415 for application/octet-stream.
+      'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       'User-Agent': 'OiiQT-Android-Publisher',
       ...(body !== undefined ? { 'Content-Type': 'application/json' } : {})
