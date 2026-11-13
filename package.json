@@ -1,0 +1,23 @@
+{
+  "name": "oiiqt-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OiiQT for Android — qBittorrent / Transmission / MoviePilot client as a PWA + Capacitor app",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "node build.js",
+    "cap:add": "npm run build && npx cap add android",
+    "cap:sync": "npm run build && npx cap sync android",
+    "apk": "npm run cap:sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  },
+  "engines": { "node": ">=20" }
+}

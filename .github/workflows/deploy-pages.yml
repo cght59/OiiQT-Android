@@ -1,0 +1,46 @@
+name: Deploy PWA to Pages
+
+# Optional: publish a shareable HTTPS link for "Add to Home screen".
+# GitHub Pages is static hosting, so there is no bundled /proxy here:
+# set a remote proxy address in Settings, or use the APK for direct access.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Assemble static site
+        run: |
+          mkdir -p _site
+          cp -r index.html manifest.webmanifest sw.js css js icons _site/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

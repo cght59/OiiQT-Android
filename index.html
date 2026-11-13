@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#f2f2f7" id="metaTheme">
+<meta name="description" content="OiiQT for Android - 管理 qBittorrent、Transmission 与 MoviePilot">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="OiiQT">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+<title>OiiQT</title>
+</head>
+<body>
+  <div id="app">
+    <header id="topbar" class="topbar"></header>
+    <main id="page" class="page"></main>
+    <nav id="tabbar" class="tabbar"></nav>
+  </div>
+  <div id="sheetRoot"></div>
+  <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+  <div id="busy" class="busy hidden"><div class="spinner"></div></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

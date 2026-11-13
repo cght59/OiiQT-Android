@@ -1,0 +1,18 @@
+{
+  "appId": "cn.oiiqt.android",
+  "appName": "OiiQT",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
