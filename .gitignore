@@ -2,6 +2,9 @@ node_modules/
 dist/
 android/
 builds/
+.jobs.json
+.runs.json
+.joblog.txt
 *.log
 .DS_Store
 Thumbs.db

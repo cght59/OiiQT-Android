@@ -38,13 +38,20 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Ensure platform / build-tools
+      # ubuntu-latest images already ship the Android SDK. The third-party
+      # setup-android action is avoided: it tries to install the retired
+      # "tools" package and fails on current runners.
+      - name: Prepare preinstalled Android SDK
         run: |
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "platform-tools" >/dev/null
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKMGR=$(find "$SDK/cmdline-tools" -type f -name sdkmanager 2>/dev/null | sort | tail -1)
+          test -n "$SDKMGR" || { echo "sdkmanager not found under $SDK"; ls -la "$SDK"; exit 1; }
+          echo "sdkmanager: $SDKMGR"
+          "$SDKMGR" --version
+          yes | "$SDKMGR" --licenses >/dev/null 2>&1 || true
+          "$SDKMGR" --install "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund

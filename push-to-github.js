@@ -48,6 +48,7 @@ function collect(dir, rel = '', out = []) {
     const r = rel ? `${rel}/${name}` : name;
     const st = fs.statSync(abs);
     if (st.isDirectory()) collect(abs, r, out);
+    else if (name.startsWith('.') && name !== '.gitignore') continue; // local debug files
     else if (!SKIP_FILE.test(name)) out.push({ path: r, abs, size: st.size });
   }
   return out;
@@ -262,6 +263,13 @@ async function main() {
 
   if (NO_BUILD) return;
 
+  // Remember the latest existing run so a retrigger never watches an old run.
+  let baseline = 0;
+  try {
+    const before = await api('GET', `${R}/actions/runs?event=workflow_dispatch&per_page=5`);
+    baseline = Math.max(0, ...(before.workflow_runs || []).map(r => r.id));
+  } catch { /* fine, we will just take the newest run */ }
+
   // Workflows need a moment to register on a freshly created repo.
   let dispatched = false;
   for (let i = 0; i < 8 && !dispatched; i++) {
@@ -291,8 +299,10 @@ async function main() {
   let runId = null;
   for (let i = 0; i < 40 && !runId; i++) {
     const runs = await api('GET', `${R}/actions/runs?event=workflow_dispatch&per_page=5`);
-    const hit = (runs.workflow_runs || []).find(r => /Build Android APK/.test(r.name));
-    if (hit) runId = hit.id;
+    const hit = (runs.workflow_runs || [])
+      .filter(r => /Build Android APK/.test(r.name))
+      .sort((a, b) => b.id - a.id)[0];
+    if (hit && hit.id > baseline) runId = hit.id;
     else await sleep(3000);
   }
   if (!runId) { console.log('未查询到构建记录，请到 Actions 页面查看。'); return; }
@@ -308,6 +318,21 @@ async function main() {
   console.log(`构建结果: ${conclusion || '超时（仍在运行）'}`);
   if (conclusion !== 'success') {
     console.log(`日志: https://github.com/${owner}/${name}/actions/runs/${runId}`);
+    try {
+      const jobs = await api('GET', `${R}/actions/runs/${runId}/jobs`);
+      const bad = (jobs.jobs || []).find(j => j.conclusion === 'failure');
+      if (bad) {
+        const failed = (bad.steps || []).filter(s => s.conclusion === 'failure').map(s => s.name);
+        console.log(`失败步骤: ${failed.join(', ') || bad.name}`);
+        const log = await api('GET', `${R}/actions/jobs/${bad.id}/logs`, undefined, { raw: true });
+        const lines = log.toString('utf8').split('\n')
+          .filter(l => /##\[error\]|Error:|error:|FAILED|failed with exit code|What went wrong|Exception/i.test(l));
+        if (lines.length) {
+          console.log('--- 关键错误 ---');
+          lines.slice(-25).forEach(l => console.log('  ' + l.replace(/^\S+Z /, '').slice(0, 300)));
+        }
+      }
+    } catch (e) { console.log(`(日志解析跳过: ${e.message})`); }
     return;
   }
 
